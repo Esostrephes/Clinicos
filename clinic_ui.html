@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alupe Health Center</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #075E54;
+    --green-mid: #128C7E;
+    --green-light: #25D366;
+    --green-pale: #DCF8C6;
+    --bg: #ECE5DD;
+    --white: #FFFFFF;
+    --bubble-in: #FFFFFF;
+    --bubble-out: #DCF8C6;
+    --text: #111B21;
+    --text-muted: #667781;
+    --admin-bg: #0f1117;
+    --admin-surface: #1a1d27;
+    --admin-card: #22263a;
+    --admin-accent: #25D366;
+    --admin-text: #e8eaf0;
+    --admin-muted: #6b7280;
+    --admin-border: #2d3148;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--admin-bg);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ===== TOP NAV ===== */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: var(--green-dark);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 8px;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .nav-logo {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.3px;
+    margin-right: auto;
+  }
+  .nav-logo span { color: var(--green-light); }
+  .nav-tab {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    color: rgba(255,255,255,0.7);
+    background: transparent;
+  }
+  .nav-tab.active {
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+  .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+
+  /* ===== PAGES ===== */
+  .page {
+    position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0;
+    display: none;
+    overflow: hidden;
+  }
+  .page.active { display: flex; }
+
+  /* ===== WHATSAPP SIMULATOR ===== */
+  #page-chat {
+    background: #111B21;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .wa-shell {
+    width: 420px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    position: relative;
+  }
+
+  .wa-header {
+    background: var(--green-dark);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wa-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--green-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .wa-info h3 { color: #fff; font-size: 15px; font-weight: 500; }
+  .wa-info p { color: rgba(255,255,255,0.6); font-size: 12px; }
+  .wa-status {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+  .status-dot.connected { background: var(--green-light); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .status-label { color: rgba(255,255,255,0.6); }
+
+  .wa-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23ECE5DD'/%3E%3Cg opacity='0.05'%3E%3Ccircle cx='20' cy='20' r='3' fill='%23075E54'/%3E%3Ccircle cx='60' cy='60' r='3' fill='%23075E54'/%3E%3Ccircle cx='60' cy='20' r='2' fill='%23075E54'/%3E%3Ccircle cx='20' cy='60' r='2' fill='%23075E54'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .wa-messages::-webkit-scrollbar { width: 4px; }
+  .wa-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+  .msg-row {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .msg-row.out { justify-content: flex-end; }
+  .msg-row.in { justify-content: flex-start; }
+
+  .bubble {
+    max-width: 75%;
+    padding: 8px 12px 6px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .msg-row.out .bubble {
+    background: var(--bubble-out);
+    border-top-right-radius: 2px;
+    color: var(--text);
+  }
+  .msg-row.in .bubble {
+    background: var(--bubble-in);
+    border-top-left-radius: 2px;
+    color: var(--text);
+  }
+  .bubble .time {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 2px;
+  }
+  .bubble strong { font-weight: 600; }
+  .bubble em { font-style: italic; color: var(--text-muted); font-size: 13px; }
+
+  .typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 12px;
+    background: var(--bubble-in);
+    border-radius: 8px;
+    border-top-left-radius: 2px;
+    width: fit-content;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .typing-indicator.show { display: flex; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; animation: bounce 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  .wa-input {
+    background: var(--white);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+  .wa-input textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    max-height: 80px;
+    padding: 6px 0;
+    background: transparent;
+  }
+  .wa-input textarea::placeholder { color: var(--text-muted); }
+  .send-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--green-mid);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 18px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--green-dark); }
+
+  .config-strip {
+    background: #1a1d27;
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .config-strip label { font-size: 11px; color: #6b7280; font-family: 'DM Mono', monospace; }
+  .config-strip input {
+    flex: 1;
+    min-width: 140px;
+    background: #0f1117;
+    border: 1px solid #2d3148;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: #e8eaf0;
+    font-family: 'DM Mono', monospace;
+  }
+  .config-strip input:focus { outline: none; border-color: var(--green-light); }
+  .config-save-btn {
+    background: var(--green-dark);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .config-save-btn:hover { background: var(--green-mid); }
+
+  /* right side info panel */
+  .wa-side {
+    flex: 1;
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    max-width: 480px;
+  }
+  .wa-side h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #e8eaf0;
+    margin-bottom: 4px;
+  }
+  .wa-side p { font-size: 13px; color: #6b7280; line-height: 1.6; }
+  .quick-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .qbtn {
+    padding: 7px 14px;
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #c4c9d4;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .qbtn:hover { background: #25D36622; border-color: var(--green-light); color: var(--green-light); }
+
+  .flow-card {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .flow-card h4 { font-size: 13px; font-weight: 600; color: #9ca3af; margin-bottom: 10px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #2d3148;
+    font-size: 13px;
+    color: #c4c9d4;
+  }
+  .flow-step:last-child { border: none; }
+  .flow-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #25D36622;
+    color: var(--green-light);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ===== ADMIN DASHBOARD ===== */
+  #page-admin {
+    background: var(--admin-bg);
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .admin-login {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 360px;
+    text-align: center;
+  }
+  .login-card .icon { font-size: 36px; margin-bottom: 12px; }
+  .login-card h2 { font-size: 20px; color: var(--admin-text); font-weight: 600; margin-bottom: 6px; }
+  .login-card p { font-size: 13px; color: var(--admin-muted); margin-bottom: 24px; }
+  .login-input {
+    width: 100%;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: var(--admin-text);
+    margin-bottom: 12px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .login-input:focus { outline: none; border-color: var(--admin-accent); }
+  .login-btn {
+    width: 100%;
+    background: var(--green-dark);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+    margin-bottom: 8px;
+  }
+  .login-btn:hover { background: var(--green-mid); }
+  .login-err { font-size: 12px; color: var(--danger); margin-top: 6px; display: none; }
+
+  .admin-content {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .admin-content.show { display: flex; }
+
+  .admin-topbar {
+    background: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .admin-topbar h1 { font-size: 17px; font-weight: 600; color: var(--admin-text); margin-right: auto; }
+  .admin-topbar span { font-size: 12px; color: var(--admin-muted); }
+
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-input {
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 13px;
+    color: var(--admin-text);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .filter-input:focus { outline: none; border-color: var(--admin-accent); }
+  .action-btn {
+    background: var(--green-dark);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .action-btn:hover { background: var(--green-mid); }
+  .action-btn.outline {
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    color: var(--admin-muted);
+  }
+  .action-btn.outline:hover { border-color: var(--admin-accent); color: var(--admin-accent); background: transparent; }
+
+  .admin-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .admin-body::-webkit-scrollbar { width: 4px; }
+  .admin-body::-webkit-scrollbar-thumb { background: #2d3148; border-radius: 4px; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .stat-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .stat-card .label { font-size: 12px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-card .value { font-size: 28px; font-weight: 600; color: var(--admin-text); font-family: 'DM Mono', monospace; }
+  .stat-card .sub { font-size: 12px; color: var(--admin-muted); margin-top: 4px; }
+  .stat-card.accent .value { color: var(--admin-accent); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .section-header h3 { font-size: 15px; font-weight: 600; color: var(--admin-text); }
+  .section-header span { font-size: 12px; color: var(--admin-muted); }
+
+  .data-table {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .data-table table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    background: var(--admin-card);
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--admin-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--admin-text);
+    border-top: 1px solid var(--admin-border);
+    font-family: 'DM Mono', monospace;
+  }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .data-table .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--admin-muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .badge.reserved { background: #25D36622; color: var(--green-light); }
+  .badge.cancelled { background: #ef444422; color: var(--danger); }
+  .badge.completed { background: #3b82f622; color: #60a5fa; }
+  .badge.pending { background: #f59e0b22; color: var(--warning); }
+
+  .config-section {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .config-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--admin-muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .config-field input {
+    width: 100%;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--admin-text);
+    font-family: 'DM Mono', monospace;
+  }
+  .config-field input:focus { outline: none; border-color: var(--admin-accent); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1a1d27;
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--admin-text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--green-light); }
+  .toast.error { border-color: var(--danger); }
+
+  .logout-btn {
+    background: transparent;
+    border: 1px solid #2d3148;
+    color: #6b7280;
+    border-radius: 7px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  @media (max-width: 900px) {
+    .wa-side { display: none; }
+    .wa-shell { width: 100%; max-width: 100%; }
+    .config-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">🏥 <span>Alupe</span> Health Center</div>
+  <button class="nav-tab active" onclick="switchPage('chat')">💬 Simulator</button>
+  <button class="nav-tab" onclick="switchPage('admin')">🔐 Admin</button>
+</nav>
+
+<!-- ===== CHAT PAGE ===== -->
+<div class="page active" id="page-chat">
+
+  <!-- Config strip -->
+  <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;display:flex;flex-direction:column;">
+  </div>
+
+  <!-- WhatsApp shell -->
+  <div class="wa-shell">
+    <div class="wa-header">
+      <div class="wa-avatar">🏥</div>
+      <div class="wa-info">
+        <h3>Alupe Health Center</h3>
+        <p>Health Assistant Bot</p>
+      </div>
+      <div class="wa-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-label" id="statusLabel">offline</span>
+      </div>
+    </div>
+
+    <div class="wa-messages" id="messages"></div>
+
+    <div class="typing-indicator" id="typing">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+
+    <div class="wa-input">
+      <textarea id="msgInput" placeholder="Type a message..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+      <button class="send-btn" onclick="sendMsg()">➤</button>
+    </div>
+
+    <div class="config-strip">
+      <label>API URL</label>
+      <input id="apiUrl" placeholder="http://localhost:8000" value="http://localhost:8000">
+      <label>Phone</label>
+      <input id="simPhone" placeholder="254700000000" value="254700000000" style="max-width:140px">
+      <button class="config-save-btn" onclick="saveConfig()">Save & Connect</button>
+    </div>
+  </div>
+
+  <!-- Side info panel -->
+  <div class="wa-side">
+    <div>
+      <h2>WhatsApp Simulator</h2>
+      <p>Test all bot flows before going live. Messages are sent to your FastAPI backend just like a real WhatsApp message.</p>
+    </div>
+
+    <div class="quick-btns">
+      <button class="qbtn" onclick="quickSend('Menu')">Menu</button>
+      <button class="qbtn" onclick="quickSend('Book')">Book</button>
+      <button class="qbtn" onclick="quickSend('Ask I have a headache')">Ask health Q</button>
+      <button class="qbtn" onclick="quickSend('Info')">Clinic info</button>
+      <button class="qbtn" onclick="quickSend('Not okay')">Mental health</button>
+      <button class="qbtn" onclick="quickSend('Emergency')">Emergency</button>
+      <button class="qbtn" onclick="quickSend('1')">Select 1</button>
+      <button class="qbtn" onclick="quickSend('Yes')">Confirm Yes</button>
+      <button class="qbtn" onclick="clearChat()">🗑 Clear</button>
+    </div>
+
+    <div class="flow-card">
+      <h4>Booking Flow</h4>
+      <div class="flow-step"><div class="flow-num">1</div> Send "Book"</div>
+      <div class="flow-step"><div class="flow-num">2</div> Reply 1–4 (consultation type)</div>
+      <div class="flow-step"><div class="flow-num">3</div> Reply 1–6 (time slot)</div>
+      <div class="flow-step"><div class="flow-num">4</div> Reply "Yes" to confirm</div>
+      <div class="flow-step"><div class="flow-num">5</div> Get reference number</div>
+    </div>
+
+    <div class="flow-card">
+      <h4>Health Q&A</h4>
+      <div class="flow-step"><div class="flow-num">→</div> "Ask [your question]"</div>
+      <div class="flow-step"><div class="flow-num">→</div> AI responds via Groq</div>
+      <div class="flow-step"><div class="flow-num">→</div> Follow-up allowed</div>
+    </div>
+
+    <p style="font-size:12px;color:#444c5e;">
+      ⚠️ Simulator sends real requests to your backend. Make sure your FastAPI server is running and the API URL above is correct.
+    </p>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div class="page" id="page-admin">
+
+  <!-- Login -->
+  <div class="admin-login" id="adminLogin">
+    <div class="login-card">
+      <div class="icon">🔐</div>
+      <h2>Admin Access</h2>
+      <p>Enter your API key to access the dashboard</p>
+      <input type="text" class="login-input" id="adminUrlInput" placeholder="Backend URL (e.g. http://localhost:8000)">
+      <input type="password" class="login-input" id="adminKeyInput" placeholder="Admin API Key" onkeydown="if(event.key==='Enter')adminLogin()">
+      <button class="login-btn" onclick="adminLogin()">Access Dashboard</button>
+      <div class="login-err" id="loginErr">Invalid API key or backend unreachable</div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="admin-content" id="adminDash">
+    <div class="admin-topbar">
+      <h1>📊 Admin Dashboard</h1>
+      <div class="filter-row">
+        <input type="date" class="filter-input" id="filterDate" onchange="loadBookings()">
+        <button class="action-btn" onclick="loadAll()">↻ Refresh</button>
+        <button class="action-btn outline" onclick="downloadRevenue()">⬇ Revenue CSV</button>
+        <button class="logout-btn" onclick="adminLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="admin-body">
+
+      <!-- Stats -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card accent">
+          <div class="label">Today's Bookings</div>
+          <div class="value" id="statToday">—</div>
+          <div class="sub">Active appointments</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Bookings</div>
+          <div class="value" id="statTotal">—</div>
+          <div class="sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Cancelled</div>
+          <div class="value" id="statCancelled">—</div>
+          <div class="sub">All time</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="label">Expected Revenue</div>
+          <div class="value" id="statRevenue">—</div>
+          <div class="sub">Today (KES)</div>
+        </div>
+      </div>
+
+      <!-- Bookings table -->
+      <div>
+        <div class="section-header">
+          <h3>Appointments</h3>
+          <span id="bookingCount">Loading...</span>
+        </div>
+        <div class="data-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Booked At</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsBody">
+              <tr><td colspan="8" class="empty-state">Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Revenue table -->
+      <div>
+        <div class="section-header">
+          <h3>M-Pesa Transactions</h3>
+          <span id="txCount">Loading...</span>
+        </div>
+        <div class="data-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Receipt</th>
+                <th>Amount (KES)</th>
+                <th>Transaction Date</th>
+                <th>Recorded At</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="revenueBody">
+              <tr><td colspan="5" class="empty-state">Loading transactions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div class="config-section">
+        <div class="section-header">
+          <h3>⚙️ Backend Config</h3>
+          <span>Read-only — edit via .env</span>
+        </div>
+        <div class="config-grid">
+          <div class="config-field">
+            <label>Backend URL</label>
+            <input id="cfgUrl" readonly>
+          </div>
+          <div class="config-field">
+            <label>Clinic Name</label>
+            <input value="Alupe Health Center" readonly>
+          </div>
+          <div class="config-field">
+            <label>Admin API Key (masked)</label>
+            <input id="cfgKey" readonly>
+          </div>
+          <div class="config-field">
+            <label>Connected</label>
+            <input id="cfgStatus" readonly>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let cfg = {
+  apiUrl: localStorage.getItem('clinic_apiUrl') || 'http://localhost:8000',
+  simPhone: localStorage.getItem('clinic_simPhone') || '254700000000',
+  adminKey: '',
+  adminUrl: ''
+};
+
+// ===== PAGE SWITCH =====
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== TOAST =====
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ===== CHAT SIMULATOR =====
+document.getElementById('apiUrl').value = cfg.apiUrl;
+document.getElementById('simPhone').value = cfg.simPhone;
+
+function saveConfig() {
+  cfg.apiUrl = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
+  cfg.simPhone = document.getElementById('simPhone').value.trim();
+  localStorage.setItem('clinic_apiUrl', cfg.apiUrl);
+  localStorage.setItem('clinic_simPhone', cfg.simPhone);
+  checkConnection();
+  toast('Config saved');
+}
+
+async function checkConnection() {
+  try {
+    const r = await fetch(cfg.apiUrl + '/health', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) { setStatus(true); return; }
+  } catch {}
+  // try root
+  try {
+    await fetch(cfg.apiUrl + '/', { signal: AbortSignal.timeout(3000) });
+    setStatus(true);
+  } catch {
+    setStatus(false);
+  }
+}
+
+function setStatus(online) {
+  const dot = document.getElementById('statusDot');
+  const lbl = document.getElementById('statusLabel');
+  dot.className = 'status-dot' + (online ? ' connected' : '');
+  lbl.textContent = online ? 'online' : 'offline';
+}
+
+function formatTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function formatBubble(text) {
+  return text
+    .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+    .replace(/_(.*?)_/g, '<em>$1</em>');
+}
+
+function addMsg(text, direction) {
+  const messages = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + direction;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = formatBubble(text) + `<div class="time">${formatTime()}</div>`;
+  row.appendChild(bubble);
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function showTyping() {
+  const t = document.getElementById('typing');
+  t.classList.add('show');
+  document.getElementById('messages').scrollTop = 99999;
+}
+function hideTyping() {
+  document.getElementById('typing').classList.remove('show');
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  addMsg(text, 'out');
+  showTyping();
+
+  try {
+    // Simulate a WhatsApp webhook payload
+    const payload = {
+      entry: [{
+        changes: [{
+          value: {
+            messages: [{
+              id: 'sim_' + Date.now(),
+              from: cfg.simPhone,
+              type: 'text',
+              text: { body: text }
+            }]
+          }
+        }]
+      }]
+    };
+
+    const resp = await fetch(cfg.apiUrl + '/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    hideTyping();
+
+    if (!resp.ok) {
+      addMsg(`⚠️ Server returned ${resp.status}. Is your backend running?`, 'in');
+      return;
+    }
+
+    // The real bot sends via WhatsApp API, so we poll for the last sent message
+    // For simulation, we just acknowledge. You can override send_whatsapp_message
+    // in your backend to return responses for simulation mode.
+    const data = await resp.json();
+
+    // If backend returns a sim_response field, show it
+    if (data.sim_response) {
+      const replies = Array.isArray(data.sim_response) ? data.sim_response : [data.sim_response];
+      replies.forEach(r => addMsg(r, 'in'));
+    } else {
+      addMsg('✅ Message delivered to bot (ref: ' + data.status + ')\n\n_Note: In simulation mode, replies go to WhatsApp. Add sim_response support to see replies here._', 'in');
+    }
+
+  } catch (err) {
+    hideTyping();
+    if (err.name === 'TimeoutError') {
+      addMsg('⏱ Request timed out. Is your backend running at ' + cfg.apiUrl + '?', 'in');
+    } else {
+      addMsg('❌ Could not reach backend: ' + err.message + '\n\nMake sure your FastAPI server is running.', 'in');
+    }
+  }
+}
+
+function quickSend(text) {
+  document.getElementById('msgInput').value = text;
+  sendMsg();
+}
+
+function clearChat() {
+  document.getElementById('messages').innerHTML = '';
+}
+
+// Initial welcome message
+setTimeout(() => {
+  addMsg('👋 Welcome to the Alupe Health Center simulator!\n\nClick *Save & Connect* after setting your backend URL, then try the quick buttons on the right or type any message.\n\nYour FastAPI server handles all the logic — this just sends requests to it.', 'in');
+  checkConnection();
+}, 300);
+
+// ===== ADMIN =====
+async function adminLogin() {
+  const key = document.getElementById('adminKeyInput').value.trim();
+  const url = document.getElementById('adminUrlInput').value.trim().replace(/\/$/, '') || 'http://localhost:8000';
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+
+  if (!key) { err.textContent = 'Enter your API key'; err.style.display = 'block'; return; }
+
+  try {
+    const r = await fetch(url + '/admin/bookings', {
+      headers: { 'x-api-key': key },
+      signal: AbortSignal.timeout(6000)
+    });
+
+    if (r.status === 401) { err.textContent = 'Invalid API key'; err.style.display = 'block'; return; }
+    if (!r.ok) { err.textContent = `Server error: ${r.status}`; err.style.display = 'block'; return; }
+
+    cfg.adminKey = key;
+    cfg.adminUrl = url;
+
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminDash').classList.add('show');
+    document.getElementById('cfgUrl').value = url;
+    document.getElementById('cfgKey').value = key.substring(0, 4) + '****' + key.substring(key.length - 2);
+    document.getElementById('cfgStatus').value = '✅ Connected';
+    document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+
+    loadAll();
+  } catch(e) {
+    err.textContent = 'Cannot reach backend: ' + (e.message || 'unknown error');
+    err.style.display = 'block';
+  }
+}
+
+function adminLogout() {
+  cfg.adminKey = '';
+  document.getElementById('adminDash').classList.remove('show');
+  document.getElementById('adminLogin').style.display = 'flex';
+  document.getElementById('adminKeyInput').value = '';
+}
+
+async function loadAll() {
+  await Promise.all([loadBookings(), loadRevenue()]);
+}
+
+async function loadBookings() {
+  const date = document.getElementById('filterDate').value;
+  let url = cfg.adminUrl + '/admin/bookings';
+  if (date) url += '?date=' + date;
+
+  try {
+    const r = await fetch(url, { headers: { 'x-api-key': cfg.adminKey } });
+    const data = await r.json();
+    const bookings = data.bookings || [];
+
+    const tbody = document.getElementById('bookingsBody');
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!bookings.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No bookings found</td></tr>';
+    } else {
+      tbody.innerHTML = bookings.map(b => `
+        <tr>
+          <td>${b.reference || '—'}</td>
+          <td>${b.date || '—'}</td>
+          <td>${b.time || '—'}</td>
+          <td>${b.consultation_type || '—'}</td>
+          <td>KES ${(b.amount || 0).toLocaleString()}</td>
+          <td><span class="badge ${b.status}">${b.status}</span></td>
+          <td><span class="badge ${b.payment_status}">${b.payment_status || 'pending'}</span></td>
+          <td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('bookingCount').textContent = bookings.length + ' records';
+
+    // Stats
+    const allRes = await fetch(cfg.adminUrl + '/admin/bookings', { headers: { 'x-api-key': cfg.adminKey } });
+    const allData = await allRes.json();
+    const all = allData.bookings || [];
+    const todayBookings = all.filter(b => b.date === today && b.status !== 'cancelled');
+    const cancelled = all.filter(b => b.status === 'cancelled');
+    const todayRev = todayBookings.reduce((s, b) => s + (b.amount || 0), 0);
+
+    document.getElementById('statToday').textContent = todayBookings.length;
+    document.getElementById('statTotal').textContent = all.length;
+    document.getElementById('statCancelled').textContent = cancelled.length;
+    document.getElementById('statRevenue').textContent = todayRev.toLocaleString();
+
+  } catch(e) {
+    document.getElementById('bookingsBody').innerHTML = `<tr><td colspan="8" class="empty-state">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function loadRevenue() {
+  try {
+    const r = await fetch(cfg.adminUrl + '/admin/revenue', { headers: { 'x-api-key': cfg.adminKey } });
+
+    if (r.headers.get('content-type')?.includes('text/csv')) {
+      // It's a CSV — show placeholder
+      document.getElementById('revenueBody').innerHTML = '<tr><td colspan="5" class="empty-state">Revenue endpoint returns CSV. Click "Revenue CSV" to download.</td></tr>';
+      document.getElementById('txCount').textContent = 'CSV download available';
+      return;
+    }
+
+    const data = await r.json();
+    const txs = data.transactions || data || [];
+
+    if (!txs.length) {
+      document.getElementById('revenueBody').innerHTML = '<tr><td colspan="5" class="empty-state">No transactions recorded yet</td></tr>';
+    } else {
+      document.getElementById('revenueBody').innerHTML = txs.map(t => `
+        <tr>
+          <td>${t.mpesa_receipt || '—'}</td>
+          <td>${(t.amount || 0).toLocaleString()}</td>
+          <td>${t.transaction_date || '—'}</td>
+          <td>${t.recorded_at ? new Date(t.recorded_at).toLocaleDateString() : '—'}</td>
+          <td><span class="badge ${t.status || 'completed'}">${t.status || 'completed'}</span></td>
+        </tr>
+      `).join('');
+      document.getElementById('txCount').textContent = txs.length + ' transactions';
+    }
+  } catch(e) {
+    document.getElementById('revenueBody').innerHTML = `<tr><td colspan="5" class="empty-state">${e.message}</td></tr>`;
+  }
+}
+
+async function downloadRevenue() {
+  const start = document.getElementById('filterDate').value;
+  let url = cfg.adminUrl + '/admin/revenue';
+  if (start) url += '?start_date=' + start;
+
+  try {
+    const r = await fetch(url, { headers: { 'x-api-key': cfg.adminKey } });
+    if (!r.ok) { toast('Failed to download', 'error'); return; }
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'alupe_revenue_' + (start || 'all') + '.csv';
+    a.click();
+    toast('Revenue CSV downloaded');
+  } catch(e) {
+    toast('Download failed: ' + e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>
